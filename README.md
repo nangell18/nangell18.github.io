@@ -1,3 +1,3 @@
 # Math 421. Statistical analysis with R
 
-[My first assignment]()
+[Click here to my Assignment 1](Assignment1.html)
