@@ -1,0 +1,43 @@
+---
+title: "assignment 2"
+author: "Nathan Angell"
+date: "9/13/2021"
+output: html_document
+---
+
+## problem 1
+
+```{r}
+sum(seq(1,100,3))
+```
+
+## problem 2
+```{r}
+x <- c(1:2020)
+sum(x^2020)
+```
+
+## problem 3
+```{r}
+x <- c(1:2020)
+y <- c(2:2021)
+sum(1/(x*y))
+```
+## problem 4
+```{r}
+x <- c(1:2020)
+y <- c(2:2021)
+z <- c(3:2022)
+sum(1/(x*y*z))
+```
+
+## problem 5
+```{r}
+x <- seq(1,2021,2)
+y <- seq(1,2021,2)
+sum(x^y)
+```
+
+
+
+
