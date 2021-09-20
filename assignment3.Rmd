@@ -1,0 +1,43 @@
+---
+title: "assignment 3"
+author: "Nathan Angell"
+date: "9/15/2021"
+output: html_document
+---
+## problem 1
+
+```{r}
+df = data.frame(Rank = c(0,1,2,3),
+                Age = c(28,34,29,42),
+                Name = c("Tom", "Jack", "Steve", "Ricky"))
+```
+## problem 2
+### use the read.csv to get the df into your system
+```{r}
+df = read.csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv')
+```
+
+## problem 3
+### How many columns and rows the data have?
+```{r}
+str(df)
+# there are 30,869 rows and 5 columns from what I saw from this code
+```
+## problem 4
+### How many missing values are there? Show the missing values by columns. What variable has the most number of missing values?
+```{r}
+colSums(is.na(df))
+# there are no missing values
+```
+## problem 5
+### What is the class of the date column? Change the date columns to date type using the as.Date function. Show the new class of the date column
+```{r}
+class(df$date)
+
+# you still need to knit the assignment as html
+
+```
+
+
+
+
