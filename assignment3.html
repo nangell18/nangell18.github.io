@@ -363,17 +363,17 @@ pre code {
 </div>
 <div id="problem-2" class="section level2">
 <h2>problem 2</h2>
-<div id="use-the-read.csv-to-get-the-df-into-your-system" class="section level3">
-<h3>use the read.csv to get the df into your system</h3>
+<div id="use-the-read.csv-to-get-the-df-into-your-system" class="section level4">
+<h4>use the read.csv to get the df into your system</h4>
 <pre class="r"><code>df = read.csv(&#39;https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv&#39;)</code></pre>
 </div>
 </div>
 <div id="problem-3" class="section level2">
 <h2>problem 3</h2>
-<div id="how-many-columns-and-rows-the-data-have" class="section level3">
-<h3>How many columns and rows the data have?</h3>
+<div id="how-many-columns-and-rows-the-data-have" class="section level4">
+<h4>How many columns and rows the data have?</h4>
 <pre class="r"><code>str(df)</code></pre>
-<pre><code>## &#39;data.frame&#39;:    31144 obs. of  5 variables:
+<pre><code>## &#39;data.frame&#39;:    31199 obs. of  5 variables:
 ##  $ date  : chr  &quot;2020-01-21&quot; &quot;2020-01-22&quot; &quot;2020-01-23&quot; &quot;2020-01-24&quot; ...
 ##  $ state : chr  &quot;Washington&quot; &quot;Washington&quot; &quot;Washington&quot; &quot;Illinois&quot; ...
 ##  $ fips  : int  53 53 53 17 53 6 17 53 4 6 ...
@@ -384,8 +384,8 @@ pre code {
 </div>
 <div id="problem-4" class="section level2">
 <h2>problem 4</h2>
-<div id="how-many-missing-values-are-there-show-the-missing-values-by-columns.-what-variable-has-the-most-number-of-missing-values" class="section level3">
-<h3>How many missing values are there? Show the missing values by columns. What variable has the most number of missing values?</h3>
+<div id="how-many-missing-values-are-there-show-the-missing-values-by-columns.-what-variable-has-the-most-number-of-missing-values" class="section level4">
+<h4>How many missing values are there? Show the missing values by columns. What variable has the most number of missing values?</h4>
 <pre class="r"><code>colSums(is.na(df))</code></pre>
 <pre><code>##   date  state   fips  cases deaths 
 ##      0      0      0      0      0</code></pre>
@@ -394,11 +394,139 @@ pre code {
 </div>
 <div id="problem-5" class="section level2">
 <h2>problem 5</h2>
-<div id="what-is-the-class-of-the-date-column-change-the-date-columns-to-date-type-using-the-as.date-function.-show-the-new-class-of-the-date-column" class="section level3">
-<h3>What is the class of the date column? Change the date columns to date type using the as.Date function. Show the new class of the date column</h3>
+<div id="what-is-the-class-of-the-date-column-change-the-date-columns-to-date-type-using-the-as.date-function.-show-the-new-class-of-the-date-column" class="section level4">
+<h4>What is the class of the date column? Change the date columns to date type using the as.Date function. Show the new class of the date column</h4>
 <pre class="r"><code>class(df$date)</code></pre>
 <pre><code>## [1] &quot;character&quot;</code></pre>
-<pre class="r"><code># you still need to knit the assignment as html</code></pre>
+<pre class="r"><code>df$date &lt;- as.Date(df$date)</code></pre>
+</div>
+</div>
+<div id="problem-6" class="section level2">
+<h2>problem 6</h2>
+<p>####Capitalize the names of all the variables</p>
+<pre class="r"><code>colnames(df) &lt;- c(&#39;Date&#39;,&#39;State&#39;,&#39;Fips&#39;, &#39;Cases&#39;, &#39;Deaths&#39;)</code></pre>
+</div>
+<div id="problem-7" class="section level2">
+<h2>problem 7</h2>
+<div id="find-the-average-number-of-cases-per-day.-find-the-maximum-cases-a-day." class="section level4">
+<h4>Find the average number of cases per day. Find the maximum cases a day.</h4>
+<pre class="r"><code># average number cases per day
+mean(df$Cases, na.rm=TRUE)</code></pre>
+<pre><code>## [1] 325130.8</code></pre>
+<pre class="r"><code>#max cases a day
+max(df$Cases, na.rm=TRUE)</code></pre>
+<pre><code>## [1] 4662754</code></pre>
+</div>
+</div>
+<div id="problem-8" class="section level2">
+<h2>problem 8</h2>
+<div id="how-many-states-are-there-in-the-data" class="section level4">
+<h4>How many states are there in the data?</h4>
+<pre class="r"><code>length(unique(df$State))</code></pre>
+<pre><code>## [1] 55</code></pre>
+</div>
+</div>
+<div id="problem-9" class="section level2">
+<h2>problem 9</h2>
+<div id="create-a-new-variable-weekdays-to-store-the-weekday-for-each-rows." class="section level4">
+<h4>Create a new variable weekdays to store the weekday for each rows.</h4>
+<pre class="r"><code>df$Weekdays &lt;- weekdays(df$Date)</code></pre>
+</div>
+</div>
+<div id="problem-10" class="section level2">
+<h2>problem 10</h2>
+<div id="create-the-categorical-variable-death2-variable-taking-the-values-as-follows-has_death-if-there-is-a-death-that-day-and-no_death-if-there-is-no-death-that-day" class="section level4">
+<h4>Create the categorical variable death2 variable taking the values as follows: has_death if there is a death that day and no_death if there is no death that day</h4>
+<pre class="r"><code>df$Deaths2 &lt;- ifelse(df$Deaths==0, 
+                        &#39;no_death&#39;,&#39;has_death &#39;)</code></pre>
+</div>
+</div>
+<div id="problem-11" class="section level2">
+<h2>problem 11</h2>
+<div id="find-the-first-quartile-q1-second-quartile-q2-and-and-third-quartile-q3-of-the-variable-death" class="section level4">
+<h4>Find the first quartile (Q1), second quartile (Q2) and and third quartile (Q3) of the variable death</h4>
+<pre class="r"><code>summary(df$Deaths)</code></pre>
+<pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##       0     364    2082    6193    7380   68157</code></pre>
+</div>
+</div>
+<div id="problem-12" class="section level2">
+<h2>problem 12</h2>
+<div id="create-the-categorical-variable-death3-variable-taking-the-values-as-follows-low_death-if-the-number-of-deaths-smaller-than-the-25-percentile-q1-and-mid_death-if-the-number-of-deaths-from-q1-to-q3-and-high_death-if-the-number-of-deaths-greater-than-q3" class="section level4">
+<h4>Create the categorical variable death3 variable taking the values as follows: low_death if the number of deaths smaller than the 25 percentile (Q1) AND mid_death if the number of deaths from Q1 to Q3 AND high_death if the number of deaths greater than Q3</h4>
+<pre class="r"><code>df$Deaths3 &lt;- cut(df$Deaths, 
+                      breaks = c(0, 363, 7371,68106), 
+                    labels=c(&#39;low_death&#39;,&#39;mid_death&#39;,&#39;high_death&#39;))
+table(df$Deaths3)</code></pre>
+<pre><code>## 
+##  low_death  mid_death high_death 
+##       6836      15594       7812</code></pre>
+</div>
+</div>
+<div id="problem-13" class="section level2">
+<h2>problem 13</h2>
+<div id="find-the-average-cases-in-rhode-island-in-2021" class="section level4">
+<h4>Find the average cases in Rhode Island in 2021</h4>
+<pre class="r"><code># do not forget about the comma!
+df1 &lt;- df[(df$State == &#39;Rhode Island&#39;),]
+
+# then do the mean
+mean(df1$Cases)</code></pre>
+<pre><code>## [1] 78294.07</code></pre>
+</div>
+</div>
+<div id="problem-14" class="section level2">
+<h2>problem 14</h2>
+<div id="find-the-median-cases-by-weekdays-in-rhode-island-in-2021" class="section level4">
+<h4>Find the median cases by weekdays in Rhode Island in 2021</h4>
+<pre class="r"><code>by(df1$Cases,df1$Weekdays, median)</code></pre>
+<pre><code>## df1$Weekdays: Friday
+## [1] 70818
+## ------------------------------------------------------------ 
+## df1$Weekdays: Monday
+## [1] 69944.5
+## ------------------------------------------------------------ 
+## df1$Weekdays: Saturday
+## [1] 70818
+## ------------------------------------------------------------ 
+## df1$Weekdays: Sunday
+## [1] 66477.5
+## ------------------------------------------------------------ 
+## df1$Weekdays: Thursday
+## [1] 69247
+## ------------------------------------------------------------ 
+## df1$Weekdays: Tuesday
+## [1] 67067
+## ------------------------------------------------------------ 
+## df1$Weekdays: Wednesday
+## [1] 68299</code></pre>
+</div>
+</div>
+<div id="problem-15" class="section level2">
+<h2>problem 15</h2>
+<div id="compare-the-median-cases-in-rhode-island-in-june-july-august-and-september-in-2021." class="section level4">
+<h4>Compare the median cases in Rhode Island in June, July, August and September in 2021.</h4>
+<pre class="r"><code># it was this df2 &lt;- df1[(df1$Date&gt;=&#39;2021-06-01&#39;) &amp; (df1$Date&lt;=&#39;2021-09-01&#39;),] but i changed it because we are including september
+
+#seperate the dates above June 1st 2021
+df2 &lt;- df1[(df1$Date&gt;=&#39;2021-06-01&#39;),]
+
+#create month column to seperate the values easily
+df2$Month &lt;- months(df2$Date)
+
+# now use the by function to look at the median cases by each month
+by(df2$Cases,df2$Month, median)</code></pre>
+<pre><code>## df2$Month: August
+## [1] 158283
+## ------------------------------------------------------------ 
+## df2$Month: July
+## [1] 152971
+## ------------------------------------------------------------ 
+## df2$Month: June
+## [1] 152319.5
+## ------------------------------------------------------------ 
+## df2$Month: September
+## [1] 165849</code></pre>
 </div>
 </div>
 

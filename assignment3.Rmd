@@ -12,31 +12,116 @@ df = data.frame(Rank = c(0,1,2,3),
                 Name = c("Tom", "Jack", "Steve", "Ricky"))
 ```
 ## problem 2
-### use the read.csv to get the df into your system
+#### use the read.csv to get the df into your system
 ```{r}
 df = read.csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv')
 ```
 
 ## problem 3
-### How many columns and rows the data have?
+#### How many columns and rows the data have?
 ```{r}
 str(df)
 # there are 30,869 rows and 5 columns from what I saw from this code
 ```
 ## problem 4
-### How many missing values are there? Show the missing values by columns. What variable has the most number of missing values?
+#### How many missing values are there? Show the missing values by columns. What variable has the most number of missing values?
 ```{r}
 colSums(is.na(df))
 # there are no missing values
 ```
 ## problem 5
-### What is the class of the date column? Change the date columns to date type using the as.Date function. Show the new class of the date column
+#### What is the class of the date column? Change the date columns to date type using the as.Date function. Show the new class of the date column
 ```{r}
 class(df$date)
 
-# you still need to knit the assignment as html
+df$date <- as.Date(df$date)
 
 ```
+## problem 6
+####Capitalize the names of all the variables
+```{r}
+colnames(df) <- c('Date','State','Fips', 'Cases', 'Deaths')
+
+```
+## problem 7
+#### Find the average number of cases per day. Find the maximum cases a day.
+```{r}
+# average number cases per day
+mean(df$Cases, na.rm=TRUE)
+
+#max cases a day
+max(df$Cases, na.rm=TRUE)
+```
+## problem 8
+#### How many states are there in the data?
+```{r}
+length(unique(df$State))
+```
+## problem 9
+#### Create a new variable weekdays to store the weekday for each rows.
+```{r}
+df$Weekdays <- weekdays(df$Date)
+```
+## problem 10
+####     Create the categorical variable death2 variable taking the values as follows: has_death if there is a death that day and no_death if there is no death that day
+```{r}
+df$Deaths2 <- ifelse(df$Deaths==0, 
+                        'no_death','has_death ')
+```
+## problem 11
+#### Find the first quartile (Q1), second quartile (Q2) and and third quartile (Q3) of the variable death
+```{r}
+summary(df$Deaths)
+```
+## problem 12
+#### Create the categorical variable death3 variable taking the values as follows: low_death if the number of deaths smaller than the 25 percentile (Q1) AND mid_death if the number of deaths from Q1 to Q3 AND high_death if the number of deaths greater than Q3
+```{r}
+df$Deaths3 <- cut(df$Deaths, 
+                      breaks = c(0, 363, 7371,68106), 
+                    labels=c('low_death','mid_death','high_death'))
+table(df$Deaths3)
+```
+## problem 13
+#### Find the average cases in Rhode Island in 2021
+```{r}
+# do not forget about the comma!
+df1 <- df[(df$State == 'Rhode Island'),]
+
+# then do the mean
+mean(df1$Cases)
+```
+## problem 14
+#### Find the median cases by weekdays in Rhode Island in 2021
+```{r}
+by(df1$Cases,df1$Weekdays, median)
+```
+## problem 15
+#### Compare the median cases in Rhode Island in June, July, August and September in 2021.
+```{r}
+# it was this df2 <- df1[(df1$Date>='2021-06-01') & (df1$Date<='2021-09-01'),] but i changed it because we are including september
+
+#seperate the dates above June 1st 2021
+df2 <- df1[(df1$Date>='2021-06-01'),]
+
+#create month column to seperate the values easily
+df2$Month <- months(df2$Date)
+
+# now use the by function to look at the median cases by each month
+by(df2$Cases,df2$Month, median)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
