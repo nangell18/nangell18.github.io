@@ -1,0 +1,110 @@
+---
+title: "Assignment 5"
+author: "Nathan Angell"
+date: "9/29/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#### Install tidyverse package and dyplr
+```{r}
+library(tidyverse)
+library(dplyr)
+```
+
+## Problem 1 
+#### Use read_csv to import the titanic data.
+
+```{r}
+df <- read_csv("titanic.csv")
+```
+
+## Problem 2
+#### How many missing values in total? Which columns has the most number if missing values?
+```{r}
+sum(is.na(df))
+# the total is 866
+
+colSums(is.na(df))
+# the column 'cabin' has the most amount of missing values
+```
+
+## problem 3
+#### Remove the column with the most number of missing value
+```{r}
+df$Cabin <- NULL
+```
+
+## problem 4
+#### Create a dataset where the rows with missing data are removed. The original dataset remains unchanged by this action.
+```{r}
+df1 <- drop_na(df, Age, Embarked)
+```
+
+## problem 5
+#### Replace the missing values of numeric variables with the corresponding average of the columns.
+```{r}
+average_age <- mean(df$Age, na.rm = TRUE)
+df$Age <- replace_na(df$Age, average_age)
+```
+
+## problem 6
+#### Replace the missing values of categorical variables with the corresponding mode (most frequent value) of the columns. Hint: You can use the table function to see what is the mode of the variable.
+```{r}
+table(df$Embarked)
+# the most frequent value is 'S'
+
+df$Embarked <- replace_na(df$Embarked, "S")
+```
+
+## problem 7
+#### The Survived column records whether a passenger survived or not. Survived = 1 means the passenger survived. Thus, the chance for survived for a random passenger can be estimated by mean(df$Survived). Compare the chance of survived between male and female. Hint (Use group_by + summarise combo)
+```{r}
+df %>% group_by(Sex) %>% summarise(mean(Survived))
+```
+
+## problem 8
+#### Use the summary function to find the first quartile (Q1) and the thrid quartile(Q3) of variable Age. Create a new variable taking values of young (Age < Q1), middle (Age from Q1 to Q3), and old(Age > Q3). Compare the chance of survived between these three groups of age.
+```{r}
+summary(df$Age)
+
+df$Age2 <- cut(df$Age, 
+                      breaks = c(0, 22, 35,80), 
+                    labels=c('young','mid','old'))
+
+df %>% group_by(Age2) %>% summarise(mean(Survived))
+```
+
+## problem 9
+#### This dataset (link) records the vehicles in car accident in 2019. The variable information can be found at this link. Import the data using read_csv. Let d be the data containing only accidents happened in Rhode Island. Is there any missing values in d?
+```{r}
+df2 <- read_csv('Vehicle.csv')
+
+d <- filter(df2, STATENAME == "Rhode Island")
+sum(is.na(d))
+# there are no missing values in the STATENAME column
+```
+
+## problem 10
+#### Continue with the dataset d in Question 9. We will analyze the traveling speed variable (TRAV_SP). This variable records the travel speeds (miles per hours) when the accident happened. Use the table function to check all the values of this variable. Do you observe any unexpected values? These unexpected values are actually the codes for missing values. Use the na_if function to changes the unexpected values to NA. Then replace the NAs by the average speed.
+```{r}
+table(d$TRAV_SP)
+
+d$TRAV_SP <- na_if(d$TRAV_SP, 998)
+d$TRAV_SP <- na_if(d$TRAV_SP, 999)
+```
+
+
+
+
+
+
+
+
+
+
+
+

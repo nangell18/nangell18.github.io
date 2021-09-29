@@ -373,7 +373,7 @@ pre code {
 <div id="how-many-columns-and-rows-the-data-have" class="section level4">
 <h4>How many columns and rows the data have?</h4>
 <pre class="r"><code>str(df)</code></pre>
-<pre><code>## &#39;data.frame&#39;:    31199 obs. of  5 variables:
+<pre><code>## &#39;data.frame&#39;:    31254 obs. of  5 variables:
 ##  $ date  : chr  &quot;2020-01-21&quot; &quot;2020-01-22&quot; &quot;2020-01-23&quot; &quot;2020-01-24&quot; ...
 ##  $ state : chr  &quot;Washington&quot; &quot;Washington&quot; &quot;Washington&quot; &quot;Illinois&quot; ...
 ##  $ fips  : int  53 53 53 17 53 6 17 53 4 6 ...
@@ -412,10 +412,10 @@ pre code {
 <h4>Find the average number of cases per day. Find the maximum cases a day.</h4>
 <pre class="r"><code># average number cases per day
 mean(df$Cases, na.rm=TRUE)</code></pre>
-<pre><code>## [1] 325130.8</code></pre>
+<pre><code>## [1] 325915.5</code></pre>
 <pre class="r"><code>#max cases a day
 max(df$Cases, na.rm=TRUE)</code></pre>
-<pre><code>## [1] 4662754</code></pre>
+<pre><code>## [1] 4669895</code></pre>
 </div>
 </div>
 <div id="problem-8" class="section level2">
@@ -447,7 +447,7 @@ max(df$Cases, na.rm=TRUE)</code></pre>
 <h4>Find the first quartile (Q1), second quartile (Q2) and and third quartile (Q3) of the variable death</h4>
 <pre class="r"><code>summary(df$Deaths)</code></pre>
 <pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-##       0     364    2082    6193    7380   68157</code></pre>
+##       0     365    2087    6204    7386   68244</code></pre>
 </div>
 </div>
 <div id="problem-12" class="section level2">
@@ -460,7 +460,7 @@ max(df$Cases, na.rm=TRUE)</code></pre>
 table(df$Deaths3)</code></pre>
 <pre><code>## 
 ##  low_death  mid_death high_death 
-##       6836      15594       7812</code></pre>
+##       6840      15615       7841</code></pre>
 </div>
 </div>
 <div id="problem-13" class="section level2">
@@ -472,7 +472,7 @@ df1 &lt;- df[(df$State == &#39;Rhode Island&#39;),]
 
 # then do the mean
 mean(df1$Cases)</code></pre>
-<pre><code>## [1] 78294.07</code></pre>
+<pre><code>## [1] 78454.4</code></pre>
 </div>
 </div>
 <div id="problem-14" class="section level2">
@@ -496,7 +496,7 @@ mean(df1$Cases)</code></pre>
 ## [1] 69247
 ## ------------------------------------------------------------ 
 ## df1$Weekdays: Tuesday
-## [1] 67067
+## [1] 71152
 ## ------------------------------------------------------------ 
 ## df1$Weekdays: Wednesday
 ## [1] 68299</code></pre>
