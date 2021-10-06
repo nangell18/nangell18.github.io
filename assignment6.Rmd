@@ -1,0 +1,185 @@
+---
+title: "Assignment 6"
+author: "Nathan Angell"
+date: "10/4/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#### Install tidyverse package and dyplr
+```{r}
+library(tidyverse)
+library(dplyr)
+```
+
+#### import data
+```{r}
+df <- read_csv("titanic.csv")
+```
+
+## 1
+#### For one continuous variable: Density, Histogram and Boxplot
+```{r}
+#density
+#this basically says most of the data is in between 10-40
+df %>% ggplot()+
+  geom_density(mapping = aes(x = Age))
+
+#histogram
+#shows that fares are between 0-100 dollars
+df %>% ggplot()+
+  geom_histogram(mapping = aes(x = Fare))
+
+#boxplot
+#shows the median, which is around 20 or so dollars. with a couple of outliers. 
+df %>% ggplot()+
+  geom_boxplot(mapping = aes(x = Fare))
+```
+## 2
+#### create one cateorical barplot
+```{r}
+#most people are in the 'S' embarked
+df %>% ggplot()+
+  geom_bar(mapping = aes(x = Embarked))
+```
+
+## 3
+#### For one two continuous variables: Scatter Plot, Line Plot and Smooth Plot
+```{r}
+# scatter plot
+# most people were below 50 for all ages. with maybe 100 or so above that shreshold for the fare
+df %>% ggplot()+
+  geom_point(mapping = aes(x = Age, y= Fare))
+
+# line plot
+# most people in the pclass of 3, have more siblings
+df %>% ggplot()+
+  geom_line(mapping = aes(x = Pclass, y= SibSp))
+
+# smooth plot
+# most people in the pclass of 3, have more siblings
+df %>% ggplot()+
+  geom_smooth(mapping = aes(x = Pclass, y= SibSp))
+```
+
+## 4
+#### For one continuous + one categorical variables: Density and boxPlot
+```{r}
+#density
+#the people that have NA's have higher ages
+df %>% ggplot()+
+  geom_density(mapping = aes(x = Age, color= Embarked))
+
+# boxplot
+#the people that have NA's have higher ages
+df %>% ggplot()+
+  geom_boxplot(mapping = aes(x = Age, color= Embarked))
+```
+
+## 5
+#### For two categorical variables: barplot
+```{r}
+df %>% ggplot()+
+  geom_bar(mapping = aes(x = Embarked))
+
+df %>% ggplot()+
+  geom_bar(mapping = aes(x = Parch))
+
+```
+
+# Questions on Covid Vaccination Data
+
+## import the correct libaries
+```{r}
+library(tidyverse)
+df <- read_csv('https://raw.githubusercontent.com/govex/COVID-19/master/data_tables/vaccine_data/us_data/time_series/vaccine_data_us_timeline.csv')
+```
+
+## 1
+#### Geom_point makes scatter plots, which plot two numeric (or Date) variables. A third categorical variable is often brought in for color. For example, we can compare different vaccine types in Rhode Island by: 
+```{r}
+df %>% filter(Province_State=='Rhode Island') %>% ggplot()+geom_point(mapping = aes(x = Date, y = Doses_admin, color = Vaccine_Type))
+```
+
+#### Do the following:
+- Use geom_point to compare the the Moderna and Pfizer vaccine administered in California
+- Use geom_point to compare the totall vaccine administered in Rhode Island and Massachusetts
+- Change geom_point to geom_line in the above codes to have the corresponding line plots.
+
+```{r}
+#first bullet point
+df %>% filter(Province_State=='California') %>% ggplot()+geom_point(mapping = aes(x = Date, y = Doses_admin, color = Vaccine_Type))
+
+#second bullet point
+df %>% filter(Province_State==c('Rhode Island','Massachusetts')) %>% ggplot()+geom_point(mapping = aes(x = Date, y = Doses_admin, color = Vaccine_Type))
+
+#the bottom two is for the third 
+df %>% filter(Province_State==c('Rhode Island','Massachusetts')) %>% ggplot()+geom_line(mapping = aes(x = Date, y = Doses_admin, color = Vaccine_Type))
+
+df %>% filter(Province_State=='California') %>% ggplot()+geom_line(mapping = aes(x = Date, y = Doses_admin, color = Vaccine_Type))
+```
+
+
+## 2
+#### Sometime we need to do some calculations on the data before plotting. For example, to compare the popularity of two vaccine Moderna and Pfizer by date, we can use.
+
+```{r}
+# Create a dataset recording these two vaccine administered by date
+d1 <- df %>% filter(Vaccine_Type==c('Moderna','Pfizer')) %>% group_by(Date, Vaccine_Type) %>% summarise(vac_admin=mean(Doses_admin, na.rm=TRUE))
+
+# Plot from the newly create data
+d1 %>% ggplot()+geom_point(mapping=aes(x=Date, y=vac_admin, color=Vaccine_Type))
+```
+
+
+#### Do the following: 
+- Use geom_point to compare the popularity of all vaccines by date.
+- Use geom_line to compare the popularity of all vaccines in New England by date.
+- Use geom_line to compare the popularity of all vaccines in New England by month.
+- Use geom_line to compare states in New England in term of the total vaccine administered by date.
+- Use geom_line to compare states in New England in term of the total vaccine administered by date.
+```{r}
+#first bullet
+d2 <- df %>% group_by(Date, Vaccine_Type) %>% summarise(vac_admin=mean(Doses_admin, na.rm=TRUE))
+
+d2 %>% ggplot()+geom_point(mapping = aes(x = Date, y = vac_admin, color = Vaccine_Type))
+
+#second bullet
+d3 <- df %>% filter(Province_State==c('Rhode Island','Massachusetts','Vermont','Connecticut','New Hampshire', 'Maine')) %>% group_by(Date, Vaccine_Type) %>% summarise(vac_admin=mean(Doses_admin, na.rm=TRUE))
+
+d3 %>% ggplot()+geom_line(mapping = aes(x = Date, y = vac_admin, color = Vaccine_Type))
+
+#third bullet
+
+#make a month column
+library(lubridate)
+df$Date <- ymd(df$Date)
+df$month = month(df$Date)
+
+d3 <- df %>% filter(Province_State==c('Rhode Island','Massachusetts','Vermont','Connecticut','New Hampshire', 'Maine'), Vaccine_Type==c('All')) %>% group_by(month, Vaccine_Type,Province_State) %>% summarise(vac_admin=mean(Doses_admin, na.rm=TRUE))
+
+d3 %>% ggplot()+geom_line(mapping = aes(x = month, y = vac_admin,color = Province_State))
+
+#forth bullet point
+
+d4 <- df %>% filter(Province_State==c('Rhode Island','Massachusetts','Vermont','Connecticut','New Hampshire', 'Maine'),Vaccine_Type==c('All')) %>% group_by(Date, Vaccine_Type) %>% summarise(vac_admin=mean(Doses_admin, na.rm=TRUE))
+
+d4 %>% ggplot()+geom_point(mapping = aes(x = Date, y = vac_admin, color = Vaccine_Type))
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
