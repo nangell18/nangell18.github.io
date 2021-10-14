@@ -1,0 +1,233 @@
+---
+title: "Assignment 7"
+author: "Nathan Angell"
+date: "10/13/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#### Install tidyverse package and dyplr
+```{r}
+library(tidyverse)
+library(dplyr)
+library(lubridate)
+```
+
+# I. Questions on your selected data
+
+### Use the data of your own. Produce the following types of plots and comment on each plot. Plots should be meaningful. If you use the data we used in class, make sure the plots are not the same as the ones in the slides. All plots should have title, caption, appropriate labels on x and y-axis.
+```{r}
+df <- read_csv('https://raw.githubusercontent.com/govex/COVID-19/master/data_tables/vaccine_data/us_data/time_series/vaccine_data_us_timeline.csv')
+```
+
+### Making categorical variables
+```{r}
+df$year <- year(df$Date)
+df$quarters <- as.factor(quarter(df$Date))
+df$month <- factor(month(df$Date, label = TRUE))
+df$day <- wday(df$Date)
+df$day_type <- case_when(df$day < 6 ~ 'weekday',
+                         TRUE~'weekend')
+```
+
+
+#### 1. Make a plot using face_wrap by one categorical variable (face_wrap(~variable1))
+```{r}
+df %>% filter(Country_Region=='US') %>% ggplot()+geom_point(mapping = aes(x = Doses_shipped, y = Doses_admin)) +
+  facet_wrap(~month)
+```
+
+#### 2. Make a plot using face_wrap by two categorical variables (face_wrap(variable1~variable2))
+```{r}
+df %>% filter(Country_Region=='US') %>% ggplot()+geom_point(mapping = aes(x = Doses_shipped, y = Doses_admin)) +
+  facet_wrap(Vaccine_Type~quarters)
+```
+
+#### 3. Make a plot using position ='jitter'.
+```{r}
+df %>% filter(Province_State=='Rhode Island', month=="Oct") %>% ggplot()+ 
+  geom_point(mapping=aes(x=Doses_shipped, y=Doses_admin,color=quarters), 
+             position='jitter')
+```
+
+#### 4. Make a plot using position ='dodge'.
+```{r}
+df %>% filter(Province_State=='Rhode Island') %>% ggplot()+ 
+  geom_bar(mapping=aes(x=quarters,fill=day_type), 
+             position='dodge')
+```
+
+#### 5. Make a plot using position ='fill'.
+```{r}
+df %>% filter(Province_State=='Rhode Island') %>% ggplot()+ 
+  geom_bar(mapping=aes(x=quarters,fill=day_type), 
+             position='fill')
+```
+
+#### 6. Make a plot using geom_col.
+```{r}
+df %>% group_by(quarters) %>% summarise(average_alloc=mean(Doses_alloc, na.rm = TRUE)) %>%
+  ggplot()+ 
+  geom_col(mapping=aes(x=quarters, y=average_alloc))
+```
+
+#### 7. Change the theme of one of your plots.
+```{r}
+df %>% group_by(quarters) %>% summarise(average_alloc=mean(Doses_alloc, na.rm = TRUE)) %>%
+  ggplot()+ 
+  geom_col(mapping=aes(x=quarters, y=average_alloc))+
+  theme_linedraw()
+```
+
+#### 8. Save a plot and put a link of the plot to your Github Webpage. To link a plot abc.png you just need to insert the following on the README.md
+
+[Link to the plot](assignment7_plot.png)
+
+# II. Questions on Covid Vaccination Data
+
+```{r}
+df <- read_csv('https://raw.githubusercontent.com/govex/COVID-19/master/data_tables/vaccine_data/us_data/time_series/vaccine_data_us_timeline.csv')
+```
+
+#### 1. Put titles, captions, appropriate labels on x and y-axis for the last two questions in Assignments 6.
+```{r}
+# import data
+df1 <- read_csv('https://raw.githubusercontent.com/govex/COVID-19/master/data_tables/vaccine_data/us_data/time_series/vaccine_data_us_timeline.csv')
+
+#create month column
+df1$month <- factor(month(df1$Date, label = TRUE))
+
+# second to last bullet point
+
+#why doesn't the c work in the province_state to look at the different new england states?
+
+d3 <- df1 %>% filter(Province_State=='Rhode Island'|Province_State=='Massachusetts'|Province_State=='Vermont'|Province_State=='Connecticut'|Province_State=='New Hampshire'|Province_State=='Maine', Vaccine_Type==c('All')) %>% group_by(month, Province_State) %>% summarise(mean_vac_admin=mean(Doses_admin, na.rm=TRUE))
+
+
+#why doesn't geom line work?
+d3 %>% ggplot()+geom_point(mapping = aes(x = month, y = mean_vac_admin,color = Province_State)) +
+    labs(x='Month', 
+       y = 'Vaccine Administered', 
+       color='State', 
+       title = 'Month vs Vaccine Administered')
+
+#-----------------------------------------------------
+
+d4 <- df1 %>% filter(Province_State=='Rhode Island'|Province_State=='Massachusetts'|Province_State=='Vermont'|Province_State=='Connecticut'|Province_State=='New Hampshire'|Province_State=='Maine',Vaccine_Type==c('All')) %>% group_by(Date, Vaccine_Type) %>% summarise(vac_admin=mean(Doses_admin, na.rm=TRUE))
+
+d4 %>% ggplot()+geom_point(mapping = aes(x = Date, y = vac_admin, color = Vaccine_Type))+
+    labs(x='Date', 
+       y = 'Vaccine Administered', 
+       color='Vaccine type', 
+       title = 'Date vs Vaccine Administered')
+
+```
+
+#### 2. Since the data seems lack of categorical variables, we will create a few categorical variables for easier visualization. From the Date variable create three categorical variables to record weekdays, months and quarters. You could also create a categorical variable to record the state regions (South, North East, Midwest, West) or other new categorical variables.
+```{r}
+
+df$quarters <- as.factor(quarter(df$Date))
+df$month <- factor(month(df$Date, label = TRUE))
+df$day <- wday(df$Date)
+df$day_type <- case_when(df$day < 6 ~ 'weekday',
+                         TRUE~'weekend')
+
+```
+
+#### 3. With the updated data after question 2. Create at least 10 new meaningful graphs. Your graphs should have titles, captions, appropriate labels on x and y-axis. USE THE FOLLOWING GRAPHS: geom_line, geom_smooth, geom_bar, geom_col, facet_wrap, combination of geom_point and geom_smooth.
+```{r}
+# 1. geom point
+d3 <- df %>% filter(Province_State=='Rhode Island', Vaccine_Type==c('All')) %>% group_by(month) %>% summarise(mean_vac_admin=mean(Doses_admin, na.rm=TRUE))
+
+d3 %>% ggplot()+geom_point(mapping = aes(x = month, y = mean_vac_admin))+
+    labs(x='Date', 
+       y = 'Vaccine Administered', 
+       title = 'Date vs Vaccine Administered in Rhode Island')
+
+
+#-------------------------------------
+
+# 2. geom_point
+df %>% filter(Province_State=='Rhode Island') %>%
+  ggplot()+ 
+  geom_point(mapping=aes(x=Doses_shipped, y=Doses_alloc, color=day_type))+
+  labs(x='Doses shipped', 
+       y = 'Doses Allocated') +
+    xlim(0, 500000)
+
+#-------------------------------------
+
+#this does not work
+
+# 3. geom line
+d4 <- df %>% filter(Province_State==c('Rhode Island', 'Massachusetts'), Vaccine_Type==c('Moderna')) %>% group_by(month, Province_State) %>% summarise(mean_vac_admin=mean(Doses_admin, na.rm=TRUE))
+
+d4 %>% ggplot()+geom_line(mapping = aes(x = month, y = mean_vac_admin, color=Province_State))+
+    labs(x='Date', 
+       y = 'Mean of Vaccines Administered', 
+       title = 'Date vs Mean Vaccine Administered in Rhode Island and Massachusetts')
+
+#-------------------------------------
+
+# 4. geom_col
+df %>% group_by(quarters) %>% summarise(mean_doses_administered=mean(Doses_admin, na.rm=TRUE)) %>%
+  ggplot()+ 
+  geom_col(mapping=aes(x=quarters, y=mean_doses_administered))
+
+#-------------------------------------
+
+# 5.geom_col 2
+
+df %>% group_by(month) %>% summarise(mean_doses_administered=mean(Doses_admin, na.rm=TRUE)) %>%
+  ggplot()+ 
+  geom_col(mapping=aes(x=month, y=mean_doses_administered))
+
+#-------------------------------------
+
+# 6. geom_bar
+
+df %>% filter(Province_State=='Rhode Island') %>% ggplot()+ 
+  geom_bar(mapping=aes(x=month, fill=Doses_admin), 
+           position = 'dodge')
+
+#-------------------------------------
+
+# 7. geom_bar 2
+
+df %>% filter(Province_State=='Massachusetts') %>% ggplot()+ 
+  geom_bar(mapping=aes(x=month, fill=Doses_admin), 
+           position = 'dodge')
+
+#-------------------------------------
+
+# 8. facet_wrap
+
+df %>% filter(Country_Region=='US') %>% ggplot()+geom_point(mapping = aes(x = Doses_shipped, y = Doses_admin)) +
+  facet_wrap(Vaccine_Type~quarters)
+
+#-------------------------------------
+
+# 9. facet_wrap
+
+df %>% filter(Country_Region=='US') %>% ggplot()+geom_point(mapping = aes(x = Doses_shipped, y = Doses_admin)) +
+  facet_wrap(Vaccine_Type~quarters)
+
+#-------------------------------------
+# 10. combination of geom_point and geom_smooth
+
+df %>% filter(month=='Jun'|month=='Jul'|month=='Aug') %>% 
+  ggplot(mapping=aes(x=Date, y=Doses_alloc, color=month))+ 
+  geom_point()+
+  geom_smooth()
+```
+
+
+
+
+
+
+
+
