@@ -100,23 +100,19 @@ df1 <- read_csv('https://raw.githubusercontent.com/govex/COVID-19/master/data_ta
 #create month column
 df1$month <- factor(month(df1$Date, label = TRUE))
 
-# second to last bullet point
 
-#why doesn't the c work in the province_state to look at the different new england states?
-
-d3 <- df1 %>% filter(Province_State=='Rhode Island'|Province_State=='Massachusetts'|Province_State=='Vermont'|Province_State=='Connecticut'|Province_State=='New Hampshire'|Province_State=='Maine', Vaccine_Type==c('All')) %>% group_by(month, Province_State) %>% summarise(mean_vac_admin=mean(Doses_admin, na.rm=TRUE))
+d3 <- df1 %>% filter(Province_State %in% c('Rhode Island','Massachusetts','Vermont','Connecticut','New Hampshire', 'Maine'), Vaccine_Type==c('All')) %>% group_by(Doses_shipped, Province_State) %>% summarise(mean_vac_admin=mean(Doses_admin, na.rm=TRUE))
 
 
-#why doesn't geom line work?
-d3 %>% ggplot()+geom_point(mapping = aes(x = month, y = mean_vac_admin,color = Province_State)) +
-    labs(x='Month', 
+d3 %>% ggplot()+geom_line(mapping = aes(x = Doses_shipped, y = mean_vac_admin,color = Province_State)) +
+    labs(x='Doses Shipped', 
        y = 'Vaccine Administered', 
        color='State', 
        title = 'Month vs Vaccine Administered')
 
 #-----------------------------------------------------
 
-d4 <- df1 %>% filter(Province_State=='Rhode Island'|Province_State=='Massachusetts'|Province_State=='Vermont'|Province_State=='Connecticut'|Province_State=='New Hampshire'|Province_State=='Maine',Vaccine_Type==c('All')) %>% group_by(Date, Vaccine_Type) %>% summarise(vac_admin=mean(Doses_admin, na.rm=TRUE))
+d4 <- df1 %>% filter(Province_State %in% c('Rhode Island','Massachusetts','Vermont','Connecticut','New Hampshire', 'Maine'),Vaccine_Type==c('All')) %>% group_by(Date, Vaccine_Type) %>% summarise(vac_admin=mean(Doses_admin, na.rm=TRUE))
 
 d4 %>% ggplot()+geom_point(mapping = aes(x = Date, y = vac_admin, color = Vaccine_Type))+
     labs(x='Date', 
@@ -160,26 +156,14 @@ df %>% filter(Province_State=='Rhode Island') %>%
 
 #-------------------------------------
 
-#this does not work
-
-# 3. geom line
-d4 <- df %>% filter(Province_State==c('Rhode Island', 'Massachusetts'), Vaccine_Type==c('Moderna')) %>% group_by(month, Province_State) %>% summarise(mean_vac_admin=mean(Doses_admin, na.rm=TRUE))
-
-d4 %>% ggplot()+geom_line(mapping = aes(x = month, y = mean_vac_admin, color=Province_State))+
-    labs(x='Date', 
-       y = 'Mean of Vaccines Administered', 
-       title = 'Date vs Mean Vaccine Administered in Rhode Island and Massachusetts')
-
-#-------------------------------------
-
-# 4. geom_col
+# 3. geom_col
 df %>% group_by(quarters) %>% summarise(mean_doses_administered=mean(Doses_admin, na.rm=TRUE)) %>%
   ggplot()+ 
   geom_col(mapping=aes(x=quarters, y=mean_doses_administered))
 
 #-------------------------------------
 
-# 5.geom_col 2
+# 4.geom_col 2
 
 df %>% group_by(month) %>% summarise(mean_doses_administered=mean(Doses_admin, na.rm=TRUE)) %>%
   ggplot()+ 
@@ -187,7 +171,7 @@ df %>% group_by(month) %>% summarise(mean_doses_administered=mean(Doses_admin, n
 
 #-------------------------------------
 
-# 6. geom_bar
+# 5. geom_bar
 
 df %>% filter(Province_State=='Rhode Island') %>% ggplot()+ 
   geom_bar(mapping=aes(x=month, fill=Doses_admin), 
@@ -195,11 +179,18 @@ df %>% filter(Province_State=='Rhode Island') %>% ggplot()+
 
 #-------------------------------------
 
-# 7. geom_bar 2
+# 6. geom_bar 2
 
 df %>% filter(Province_State=='Massachusetts') %>% ggplot()+ 
   geom_bar(mapping=aes(x=month, fill=Doses_admin), 
            position = 'dodge')
+
+#-------------------------------------
+
+# 7. facet_wrap
+
+df %>% filter(Country_Region=='US') %>% ggplot()+geom_point(mapping = aes(x = Doses_shipped, y = Doses_admin)) +
+  facet_wrap(Vaccine_Type~quarters)
 
 #-------------------------------------
 
@@ -209,14 +200,7 @@ df %>% filter(Country_Region=='US') %>% ggplot()+geom_point(mapping = aes(x = Do
   facet_wrap(Vaccine_Type~quarters)
 
 #-------------------------------------
-
-# 9. facet_wrap
-
-df %>% filter(Country_Region=='US') %>% ggplot()+geom_point(mapping = aes(x = Doses_shipped, y = Doses_admin)) +
-  facet_wrap(Vaccine_Type~quarters)
-
-#-------------------------------------
-# 10. combination of geom_point and geom_smooth
+# 9. combination of geom_point and geom_smooth
 
 df %>% filter(month=='Jun'|month=='Jul'|month=='Aug') %>% 
   ggplot(mapping=aes(x=Date, y=Doses_alloc, color=month))+ 
