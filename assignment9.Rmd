@@ -1,0 +1,98 @@
+---
+title: "Assignment 9"
+author: "Nathan Angell"
+date: "10/20/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Import data and certain functions
+```{r}
+library(gganimate)
+library(gifski)
+library(tidyverse)
+library(dplyr)
+library(lubridate)
+
+df <- read_csv("WHO-COVID-19-global-data.csv")
+```
+
+##  Find the three countries with the most numbers of deaths by Covid-19.
+#### Hint: 1. Use filter to select the most current date. 2. Pipe with arrange(-Cumulative_deaths) to rank the data by the number of cumulative deaths, Make a plot revealing the number of deaths in the three countries with the most numbers of deaths. 3. Create the new variable (column) death_per_cases recording the number of deaths per cases (Hint: divide cumulative deaths by cumulative cases). What are the three countries with the highest deaths per cases. 4. Make a plot revealing the number of deaths per cases of the US, Italy and Mexico. 5. Use transition_reveal to create three animated graph with the vaccination data at
+
+```{r}
+# this is for #1 and #2
+
+#I figured out my countries for this one
+df1 <- df %>% filter(Date_reported >= "2021-10-17") %>% arrange(-Cumulative_deaths)
+
+#create graph here
+df %>% filter(Country %in% c('United States of America', 'Brazil', 'India')) %>% ggplot(aes(y=Cumulative_deaths,
+            x=Date_reported,
+            color=Country))+
+  geom_line()+ 
+    geom_point(size=3)+
+    geom_text(aes(label = Cumulative_deaths), 
+            hjust = -.1, size=5) +
+  transition_reveal(Date_reported)
+
+#this #3
+df$death_per_cases <- df$Cumulative_deaths / df$Cumulative_cases
+
+#look at the countries
+df2 <- df %>% filter(Date_reported >= "2021-10-17") %>% arrange(-death_per_cases)
+
+#answer for #3
+# it is Yemen, Peru, and Mexico
+
+
+#this is for #4
+df %>% filter(Country %in% c('United States of America', 'Italy', 'Mexico')) %>% ggplot(aes(y=death_per_cases,
+            x=Date_reported,
+            color=Country))+
+  geom_line()+ 
+    geom_point(size=3)+
+    geom_text(aes(label = death_per_cases), 
+            hjust = -.1, size=5) +
+  transition_reveal(Date_reported)
+
+
+#this is for #5
+vac_df <- read_csv("https://raw.githubusercontent.com/govex/COVID-19/master/data_tables/vaccine_data/us_data/time_series/vaccine_data_us_timeline.csv")
+
+#first graph
+vac_df %>% filter(Province_State %in% c('Rhode Island', 'Connecticut', 'Massachusetts')) %>% filter(Vaccine_Type == 'All') %>% group_by(Date) %>% ggplot(aes(y=Doses_shipped,
+            x=Date,
+            color=Province_State))+
+  geom_line()+ 
+    geom_point(size=3)+
+    geom_text(aes(label = Doses_alloc), 
+            hjust = -.1, size=5) +
+  transition_reveal(Date)
+
+#second graph
+vac_df %>% filter(Province_State %in% c('California', 'Oregon', 'Washington')) %>% filter(Vaccine_Type == 'All') %>% group_by(Date) %>% ggplot(aes(y=Doses_shipped,
+            x=Date,
+            color=Province_State))+
+  geom_line()+ 
+    geom_point(size=3)+
+    geom_text(aes(label = Doses_alloc), 
+            hjust = -.1, size=5) +
+  transition_reveal(Date)
+
+#third graph
+vac_df %>% filter(Province_State %in% c('Nebraska', 'Kansas', 'Oklahoma')) %>% filter(Vaccine_Type == 'All') %>% group_by(Date) %>% ggplot(aes(y=Doses_shipped,
+            x=Date,
+            color=Province_State))+
+  geom_line()+ 
+    geom_point(size=3)+
+    geom_text(aes(label = Doses_alloc), 
+            hjust = -.1, size=5) +
+  transition_reveal(Date)
+
+```
+
+
