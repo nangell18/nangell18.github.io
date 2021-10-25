@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
 ```
 
 ## Import data and certain functions
@@ -38,7 +38,10 @@ df %>% filter(Country %in% c('United States of America', 'Brazil', 'India')) %>%
     geom_text(aes(label = Cumulative_deaths), 
             hjust = -.1, size=5) +
   transition_reveal(Date_reported)
+```
 
+
+```{r}
 #this #3
 df$death_per_cases <- df$Cumulative_deaths / df$Cumulative_cases
 
@@ -47,8 +50,10 @@ df2 <- df %>% filter(Date_reported >= "2021-10-17") %>% arrange(-death_per_cases
 
 #answer for #3
 # it is Yemen, Peru, and Mexico
+```
 
 
+```{r}
 #this is for #4
 df %>% filter(Country %in% c('United States of America', 'Italy', 'Mexico')) %>% ggplot(aes(y=death_per_cases,
             x=Date_reported,
@@ -58,8 +63,10 @@ df %>% filter(Country %in% c('United States of America', 'Italy', 'Mexico')) %>%
     geom_text(aes(label = death_per_cases), 
             hjust = -.1, size=5) +
   transition_reveal(Date_reported)
+```
 
 
+```{r}
 #this is for #5
 vac_df <- read_csv("https://raw.githubusercontent.com/govex/COVID-19/master/data_tables/vaccine_data/us_data/time_series/vaccine_data_us_timeline.csv")
 
