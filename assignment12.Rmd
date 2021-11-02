@@ -1,0 +1,120 @@
+---
+title: "Assignment 12"
+author: "Nathan Angell"
+date: "11/1/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## install packages and import data
+- Set seed to be 2020.
+- The target variable is diabetes
+- Partition the data into 80% training and 20% testing.
+```{r}
+library(mlbench)
+library(caret)
+data(PimaIndiansDiabetes)
+df <- PimaIndiansDiabetes
+
+#seed
+set.seed(2020)
+
+#partition data, diabetes is the target variable
+splitIndex <- createDataPartition(df$diabetes, p = .80, 
+                                  list = FALSE)
+df_train <- df[ splitIndex,]
+df_test <- df[-splitIndex,]
+```
+## 2. Use cross-validation of 30 folds to tune random forest (method=‘rf’). What is the mtry value that produces the greatest accuracy?
+- According to the graph, the best number of variables to split is at 2. 
+```{r}
+
+#Decide how many variables they decide to split when creating each particular tree
+tuneGrid = expand.grid(mtry = 2:4)
+# Tell caret to do 10 - fold cross-Validation
+trControl = trainControl(method = "cv",
+                         number = 30)
+# train a forest using above setup
+forest_rf <- train(diabetes~., data=df_train, 
+                                method = "rf", 
+                                trControl = trControl,
+                                tuneGrid = tuneGrid)
+plot(forest_rf)
+
+```
+
+## 3. Use cross-validation with of 30 folds to tune random forest (method=‘ranger’). What are the parameters that produce the greatest accuracy?
+- the parameters that list the best result are: 4 randomly selected predictors, split for the extra trees randomly it does not care about the gini index, and have a minimal node size of 9 which means the tree is shorter than having a smaller minimal node size. 
+
+```{r}
+
+tuneGrid = expand.grid(mtry = 2:4,
+                       splitrule = c('gini', 'extratrees'),
+                       min.node.size = c(1:10))
+
+trControl = trainControl(method = "cv",
+                         number = 30)
+
+forest_ranger <- train(diabetes~., data=df_train, 
+                    method = "ranger", 
+                    trControl = trControl,
+                    tuneGrid = tuneGrid)
+
+plot(forest_ranger)
+
+```
+
+## 4. Go to this [Link](https://topepo.github.io/caret/available-models.html) and pick a classification model. Tune the classification model using cross-validation of 30 folds.
+```{r}
+
+trControl = trainControl(method = "cv",
+                         number = 30)
+
+CART <- train(diabetes~., data=df_train, 
+                    method = "rpartScore", 
+                    trControl = trControl)
+
+plot(CART)
+```
+
+## 5. Pick three models at this link to compare using 15-fold cross validation method. Evaluate the accuracy of the final model on the test data. What is the best model?
+```{r}
+# treebag model
+trControl = trainControl(method = "cv",
+                         number = 15)
+
+Bagged_CART <- train(diabetes~., data=df_train, 
+                    method = "treebag", 
+                    trControl = trControl)
+
+
+# bagFDA
+trControl = trainControl(method = "cv",
+                         number = 15)
+
+Bagged_Flexible_Discriminant <- train(diabetes~., data=df_train, 
+                    method = "bagFDA", 
+                    trControl = trControl)
+
+plot(Bagged_Flexible_Discriminant)
+
+# LogitBoost
+trControl = trainControl(method = "cv",
+                         number = 15)
+
+Boosted_Logistic  <- train(diabetes~., data=df_train, 
+                    method = "LogitBoost", 
+                    trControl = trControl)
+
+plot(Boosted_Logistic)
+```
+
+
+
+
+
+
+
