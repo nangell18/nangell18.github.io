@@ -1,0 +1,478 @@
+
+---
+title: "Fall 2021 - Math 421 - Midterm"
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+    theme: united
+  word_document:
+    toc: yes
+  pdf_document:
+    toc: yes
+---
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+## I. Data Wrangling
+1. Download the data file hdd0318cy.sas7bdat.
+
+2. Use read_sas in library haven to read the data.
+
+3. Filter the data to have only patients of the year 2018 (yod==2018)
+
+4. Select to work with only following variables:
+
+                      "yod", "payfix","pay_ub92","age",  
+                      "sex","raceethn","provider","moa", 
+                      "yoa","mod","admtype", "asource" , 
+                      "preopday" ,"los", "service" , "icu","ccu",
+                      "dispub92", "payer"  ,"drg","trandb", 
+                      "randbg","randbs","orr", "anes","seq",   
+                      "lab","dtest", "ther","blood","phar", 
+                      "other","patcon","bwght","total","tot",  
+                  "ecodub92","b_wt","pt_state","diag_adm","ancilar",
+                  "campus","er_fee","er_chrg","er_mode","obs_chrg",
+                      "obs_hour","psycchrg","nicu_day"
+
+- Notice: You may want to save the current data to your computer for easy access later. To save the data file use write_csv(df, 'midterm.csv'), for example.
+
+```{r}
+library(haven)
+library(gifski)
+library(tidyverse)
+library(dplyr)
+library(lubridate)
+
+#2
+df1 = read_sas("hdd0318cy.sas7bdat")
+
+#3 and #4
+df <- df1 %>% filter(yod == 18) %>% select(
+                      "yod","payfix","pay_ub92","age",  
+                      "sex","raceethn","provider","moa", 
+                      "yoa","mod","admtype", "asource" , 
+                      "preopday" ,"los", "service" , "icu","ccu",
+                      "dispub92", "payer"  ,"drg","trandb", 
+                      "randbg","randbs","orr", "anes","seq",   
+                      "lab","dtest", "ther","blood","phar", 
+                      "other","patcon","bwght","total","tot",  
+                      "ecodub92","b_wt","pt_state","diag_adm",
+                      "ancilar","campus","er_fee","er_chrg",
+                      "er_mode","obs_chrg","obs_hour","psycchrg",
+                      "nicu_day")
+
+write_csv(df1, "midterm.csv")
+
+```
+5. What are variables (columns) that have missing values?
+
+6. Remove all variables (columns) with missing values?.
+
+```{r}
+df <- read_csv("midterm.csv")
+
+#5
+df %>% is.na() %>% sum()
+
+df %>% is.na() %>% colSums()
+
+# (#6) drop the columns with the null values
+df <- df %>% select(-payfix,-raceethn,-preopday,-bwght,-ecodub92,-er_mode,-obs_hour,-nicu_day)
+
+#drop the rows with the null values
+df <- df %>% drop_na(admtype,asource,pt_state,diag_adm)
+
+#check to make sure that there are no null values
+df %>% is.na() %>% sum()
+```
+
+7. Refer to the data description in the file HDD2015-18cy6-20-19.docx, which variable is recording the month of admission?, which variable is recording the month of discharge?
+- the variable that is recording the month of admission is MOA.
+- the variable that is recording the month of discharge is MOD. 
+
+8. Which month admitted the most number of patients? Which month admitted the most number of male patients?
+
+9. Which month has the most number of teenage female patients?
+
+```{r}
+#8 --> the answer is month 10 which is October for the first question. second question, it is also October for most number of male patients
+table(df$moa)
+max(table(df$moa))
+
+#this is not necessary but it is correct
+
+eight <- df %>% filter(sex == 1) %>% count(moa)
+
+#9 --> the most number of teenage female patients were during the month of May at 868. 
+
+df %>% filter(age <=19) %>% filter(sex == 2) %>% count(moa)
+
+```
+10. Which provider has the most number of female patients in October?
+
+11. Is female patients older than male patients, on average?
+
+12. Calculate the average age of patients by months. Which month has the oldest patients on average?
+
+```{r}
+#10 --> Rhode Island Hospital has most number of female patients in October
+df %>% group_by(provider) %>% filter(sex == 2) %>% filter(moa == 10) %>% count(provider)
+
+#11 --> on average, it looks like males a little older than females by around 2 years.
+
+df %>% group_by(sex) %>% summarise(mean(age))
+
+#this is right but not as good as as the one above
+
+df %>% filter(sex == 1) %>% filter(age != 0) %>% summarise(average_age_men = mean(age))
+
+df %>% filter(sex == 2) %>% filter(age != 0) %>% summarise(average_age_female = mean(age))
+
+#12 --> the month with the oldest patients is in January
+df %>% group_by(moa) %>% filter(age != 0) %>% summarise(average_age = mean(age))
+```
+
+13. What is the name of the provider that has the highest total charge?
+
+14. What is the name of the provider that has the least total charge for teenage male on average?
+
+15. Calculate the average length of stays by providers. Which provider has the longest length of stays on average?
+
+```{r}
+#13 --> the provider is Woman and Infants for a total of $3.4 million
+df %>% group_by(provider) %>% summarise(max_total_charge = max(tot))
+
+#14 --> the min total charge for a male goes to Woman and Infants at $63
+df %>% group_by(provider) %>% filter(sex == 1) %>% filter(age <= 19) %>% summarise(min_total_charge_male_teen = min(tot))
+
+#15 --> Bradley has the highest mean length of stay at around 23 days. 
+df %>% group_by(provider) %>% summarise(mean_los = mean(los))
+
+```
+
+16. On average, how much does a 20 year-old male get charged for staying 1 day?
+
+```{r}
+#the results are below. these are based upon each provider. 
+df %>% filter(age == 20) %>% filter(sex ==1 ) %>% filter(los ==1 ) %>% summarise(mean_tot = mean(tot))
+```
+17. Write a paragraph to summarize the section and give your comments on the results.
+When we first started with the dataset, we had around 2.2 million rows of data. This dataset was later diminished to around 131,000 rows because we are just looking at the year 2018 and we removed a couple thousand rows because there was missing data with them. Now, we are left with 41 variables, ie columns and like I said before 131,000 rows. 
+Now that we have done some data engineering to get rid of our null values and variables we do not need to look at, we then proceeded to look into the dataset. There was a couple of key insights we found. For example, October was the month that had the most number of patients visiting Rhode Island hospitals, male patients are around two years older than woman patients when visiting these hospitals, finally the hospital visit that cost the most amount of money was around $3.4 million for a patient going to Woman and Infants. 
+
+## II. Data Visualization
+Continue with the data from part I.
+
+1. Provides at least 10 meaningful plots. Comments on the plots. All plots should have title, caption, appropriate labels on x and y-axis
+
+```{r}
+#import necessary functions
+library(gganimate)
+library(ggplot2)
+library(tidyverse)
+library(lubridate)
+```
+
+My first graph, I wanted to showcase the breakdown of the length of stay column. As you can see, most of the data points lye under 15 days. Most people cannot afford to do more than that so that this graph makes sense visually and mentally. 
+```{r}
+df$los2 <- cut(df$los, 
+                      breaks = c(0,5,10,20,30,50,100,Inf), 
+                      labels=c('0-5','5-10','10-20','20-30','30-50','50-100','100-high'))
+table(df$los2)
+continuous_los_df <- df %>% filter(los <= 15)
+continuous_los_df %>% ggplot()+
+  geom_histogram(mapping = aes(x = los))+
+    labs(x='Length of Stay', 
+       y = 'Count', 
+       title = 'Histogram of Length of Stay and Count', 
+       caption = 'Most of the data points are under 10 days and most popular is 2 days.')
+```
+
+This graph shows the age distribution of the dataset. This dataset is pretty even compared to the length of stay column. Most of the data points are between 45 to 75 years old. 
+```{r}
+df %>% ggplot()+
+  geom_histogram(mapping = aes(x = age))+
+  labs(x='Age', 
+       y = 'Count', 
+       title = 'Histogram of Age and Count', 
+       caption = 'Most of the data points are between 45 to 75 years old. Interestingly, a good portion of this dataset is a new born.')
+```
+I wanted to see the distribution of the tot column, showing the total price a person paid for a room. I noticed that most of the data was below $75,000 so I filtered the data to be just that first and then I plotted the results. 
+```{r}
+continuous_tot_df <- df %>% filter(tot <= 75000)
+continuous_tot_df %>% ggplot()+
+  geom_histogram(mapping = aes(x = tot))+
+  labs(x='Total', 
+       y = 'Count', 
+       title = 'Histogram of Total Price ond Count', 
+       caption = 'Most of the data points are below $30,000.')
+```
+The filter includes 10 but not 0. We can conclude that most of the little kids goes to campus 4, which is Hasbro Childrens hospital. If we do not filter out 0, most of the newborns go to one hospital which is Woman and infants.
+```{r}
+df %>% filter(age <= 10, age>0) %>% ggplot()+
+  geom_bar(mapping = aes(x = age, fill = factor(campus)), position = 'dodge')+
+  labs(x='Age', 
+       y = 'Count',
+       fill ='Campus',
+       title = 'Bar Graph of Age and Count', 
+       caption = 'Most kids do go to Hasbro Children Hospital. While as starting at the age of 3 they start moving away to Hasbro and go to a different one.')
+
+```
+
+This boxplot shows the exact distribution of where the data point lies for the variable Length of Stay and Sex for y-axis. 
+```{r}
+df %>% filter(los <=50) %>% ggplot()+
+  geom_boxplot(mapping = aes(x = los, y = factor(sex)))+
+  labs(x='Length of Stay', 
+       y = 'Sex', 
+       title = 'Box Plot of Length of Stay and Sex', 
+       caption = 'Most males stay around 3 days. Females stay around the same time which is around 3 days. While the blanks for sex is 5 days.')
+```
+
+I wanted to filter out top four providers and see how busy they were per month. See if there is a trend in their busiest.
+```{r}
+table(df$provider)
+df %>% filter(provider == 7205| provider == 7214| provider == 7204|provider == 7210) %>% ggplot()+
+  geom_bar(mapping=aes(x=moa, fill=factor(provider)), position='dodge')+
+  labs(x='Month of Admission', 
+       y = 'Count',
+       fill ='Provider',
+       title = 'Bar Graph of the Month of Admission based upon 4 providers and count', 
+       caption = 'There are technically no popular months for any of the providers, they are more or less pretty busy every month. Provider 7205 is the most busiest out of all of them.')
+```
+
+I wanted to see how popular all of the providers were with a length of stay under 50 and any total amount due for the patient. 
+```{r}
+df %>% filter(los <=50) %>%
+  ggplot(mapping=aes(x=los, y=tot))+ 
+  geom_point()+
+  geom_smooth()+
+  facet_wrap(~provider)+
+  labs(x='Length of Stay', 
+       y = 'Total', 
+       title = 'A plot mixed with a facet wrap for Length of Stay and Total', caption = 'Most of the providers have a very linear relationship when it comes how much they charge a certain customer, minus a very few outliers. 7201, 7209, 7213 have most of their patients under 30 days while the rest had a good amount above 30 days at the hospital.')
+```
+
+I filtered out just months of 9, 10, and 11 with a length of stay under 50 to see most of the data. 
+```{r}
+#moa is 9,10, or 11
+df %>% filter(moa==9 | moa==10 | moa==11) %>% filter(los <= 50) %>% ggplot()+
+  geom_point(mapping = aes(x = los, y = tot, color = factor(moa)))+
+  labs(x='Length of Stay', 
+       y = 'Total', 
+       color = 'Month of Admission',
+       title = 'Sctter Plot of Length of Stay and Total based on Month of Admission', 
+       caption = 'There are a good amount of outliers in the data but most stay under 25 days.')
+```
+
+I just wanted to look at 3 providers: which are 7205, 7204, and 7214 with under a length of stay of 50 days. 
+```{r}
+df %>% filter(provider==7205 | provider==7204 | provider==7214) %>% filter(los <= 50) %>% ggplot()+
+  geom_point(mapping = aes(x = los, y = tot, color = factor(provider)))+
+  labs(x='Length of Stay', 
+       y = 'Total', 
+       color = 'Provider',
+       title = 'Sctter Plot of Length of Stay and Total based on Provider', 
+       caption = 'There are a few outliers compared to the previous one we saw above. It is a linear line saying that the more you stay, the greater the chance your costs will increase.')
+```
+
+I wanted to see the average age of the patients based upon each month.
+```{r}
+df %>% group_by(moa) %>% summarise(average_age=mean(age)) %>% 
+  ggplot()+ 
+  geom_col(mapping=aes(x=moa, y=average_age))+
+  labs(x='Month of Admission', 
+       y = 'Average Age',
+       title = 'Column chart of Month of Admission and Average Age', 
+       caption = 'Through out the months, the average age stays very consistent which is around 50 years old. ')
+```
+
+2. Make an animation plot.You should use the bar race.
+
+I wanted to see what is the average age per month broken down by each provider. I wanted to see who has the oldest people on a consistent basis. 
+```{r}
+d1 <- df %>% group_by(moa, provider) %>% summarise(mean = mean(age, na.rm=TRUE))
+d2 <- d1 %>% group_by(moa) %>% mutate(rank=rank(-mean)) %>% ungroup()
+d3 <- d2 %>% filter(rank <= 10)
+a1 <- d3 %>% ggplot(aes(x=rank, y=mean, group=provider, fill=factor(provider), label=provider)) + geom_col()+
+    geom_text(aes(y = mean, label = provider), hjust = 1.4)+ 
+    coord_flip(clip = "off", expand = FALSE) +scale_x_reverse()+
+    labs(title = 'Month {closest_state}', x='', y='Age', fill='provider')+
+    theme(plot.title = element_text(hjust = 1, size = 22),
+          axis.ticks.y = element_blank(),
+          axis.text.y  = element_blank(), legend.position = "none") + 
+    transition_states(moa)+
+    ease_aes("cubic-in-out")
+animate(a1, nframes = 400)
+
+```
+
+3. Write a paragraph to summarize the section and give your comments on the results.
+This section gave me really good insight to my dataset, especially my continuous variables. My continuous variables had a lot of skewed data, specifically my length of stay and the total charge for each patient. Additionally, it allowed me to understand my other important variables that I wanted to understand more like provider, MOA, and campus. 
+The one that gave me the best result was my animation because I think it was the most informational. It gave me the results on a per month basis for how much the average age changes, which I thought was really cool. The other graph that was helpful to me was believe or not the simplest one. It was the histogram where it counted up all the values for LOS and tot column. This was the most helpful because it allowed me to see the distribution of my continuous variables better than any other graph. With this in mind, those graphs made me create better looking graphs that had more detail added to them.  
+
+## III. Predictive Models
+Continue with the data from part I. Use the follows as the target and input variables:
+
+Target Variable: Create the target variable taking value of
+
+- low if the total charge of a patient (tot) is smaller than the median of the total charge, and
+
+- high otherwise.
+
+Input Variables:
+
+- “age”,“sex”,“raceethn”,“provider”,“moa”,“mod”,“admtype”,“campus”, ‘los’
+
+```{r}
+df5 <- df1 %>% filter(yod == 18) %>% select("tot","yod","age","sex","raceethn","provider","moa","mod","admtype","campus","los")
+
+write_csv(df5, "final_midterm_part_3!1.csv")
+
+pred_df <- read_csv("final_midterm_part_3!1.csv")
+
+pred_df$tot <- cut(pred_df$tot, 
+                      breaks = c(-Inf, 13400, 37000,Inf), 
+                      labels=c('low','mid','high'))
+table(pred_df$tot)
+
+#drop the rows with the null values
+pred_df <- pred_df %>% drop_na(raceethn,admtype)
+
+```
+
+
+1. Use filter function to filter out rows where raceethn=='' or admtype==''. Make sure all the categorical variables are factor, numeric variables are numeric. Set Training : Testing Split = 10 : 90
+
+2. Train a decision tree using rpart. Plot the decision tree. Plot the variable importance ranked by the tree.
+
+3. Using caret for this question. Set Training Control to be: Use Cross-Validation of 5 folds across all models. Train & tune at least 3 different models (i.e. three different values for method= in the train function of caret). Plot the hyper-parameter tuning plots for each model.
+
+4. Plot the comparison of the models in 3.
+
+5. What is your final selection for the model? Test the accuracy of your final model on the test data.
+
+```{r}
+#import library
+library(caret)
+```
+
+
+```{r}
+#1 
+pred_df <- pred_df %>% filter(raceethn != ""| admtype != "")
+
+drops <- "yod"
+pred_df <- pred_df[ , !(names(pred_df) %in% drops)]
+
+set.seed(00000)
+splitIndex <- createDataPartition(pred_df$tot, p = .90, 
+                                  list = FALSE)
+df_train <- pred_df[ splitIndex,]
+df_test <- pred_df[-splitIndex,]
+
+#2
+library(rpart) #load the rpart package
+# Create a tree
+tree_model <- rpart(tot ~ ., data = df_train,
+                 control = rpart.control(maxdepth = 3))
+library(rattle)
+fancyRpartPlot(tree_model)
+
+barplot(tree_model$variable.importance)
+
+#3
+trControl = trainControl(method = "cv",
+                         number = 5)
+
+tree <- train(tot~., data=df_train, 
+                                method = "rpart2", 
+                                trControl = trControl)
+
+forest_ranger <- train(tot~., data=df_train, 
+                    method = "ranger", 
+                                trControl = trControl)
+
+lda <- train(tot~., data=df_train, 
+                                method = "lda", 
+                                trControl = trControl)
+
+results <- resamples(list('Decision Tree' = tree,
+                          'Random Forest' = forest_ranger,
+                          'LDA'= lda))
+#4
+bwplot(results)
+
+#5 --> my final selection would be the Random Forest Model given the fact that it gave me the best result. 
+
+```
+
+6. Create another target variable (binary), decide the input variables and redo 1 to 5.
+
+```{r}
+
+sec_pred_df <- pred_df %>% filter(raceethn != ""| admtype != "")
+
+drops <- "yod"
+sec_pred_df <- sec_pred_df[ , !(names(sec_pred_df) %in% drops)]
+
+sec_pred_df <- sec_pred_df %>% filter(sex == 1 | sex == 2)
+
+sec_pred_df$sex <- factor(sec_pred_df$sex)
+
+set.seed(00000)
+splitIndex <- createDataPartition(sec_pred_df$tot, p = .90, 
+                                  list = FALSE)
+df_train <- sec_pred_df[ splitIndex,]
+df_test <- sec_pred_df[-splitIndex,]
+
+#---------------------------------------
+
+library(rpart) #load the rpart package
+# Create a tree
+tree_model <- rpart(sex ~ ., data = df_train,
+                 control = rpart.control(maxdepth = 3))
+library(rattle)
+fancyRpartPlot(tree_model)
+
+barplot(tree_model$variable.importance)
+
+#---------------------------------------
+
+trControl = trainControl(method = "cv",
+                         number = 5)
+
+tree <- train(sex~., data=df_train, 
+                                method = "rpart2", 
+                                trControl = trControl)
+
+forest_ranger <- train(sex~., data=df_train, 
+                    method = "ranger", 
+                                trControl = trControl)
+
+treebag <- train(sex~., data=df_train, 
+                    method = "treebag", 
+                    trControl = trControl)
+results <- resamples(list('Decision Tree' = tree,
+                          'Random Forest' = forest_ranger,
+                          'Bagged CART'= treebag))
+
+bwplot(results)
+
+#---------------------------------------
+
+#My final selection would be the Random Forest Model given the fact that it gave me the best result.
+```
+
+7. Write a paragraph to summarize the section and give your comments on the results.
+This gave me the most important variables to consider when looking at the dataset. For my decision tree, when predicting total charge for the stay, it looked like length of stay, age and admtype were the top three contributors. While for my particular target variable, which was sex: provider, age, and admtype were the top contributors to the model.  
+
+
+
+
+
