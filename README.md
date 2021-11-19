@@ -14,4 +14,5 @@
 - [Click here to my Assignment 12](assignment12.html)
 - [Final Midterm](fa2021_midterm_toc.html)
 - [Final slides for Midterm](slides.html)
+ [Click here to my Assignment 13](assignment13.html)
 
