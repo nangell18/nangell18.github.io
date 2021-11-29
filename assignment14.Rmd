@@ -1,0 +1,366 @@
+---
+title: "Assignment 14"
+author: "Nathan Angell"
+date: "11/22/2021"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#### Pick a keyword or hashtag. Download the data associated with the keyword/hashtag. Plot at least 10 plots to visualize the data associated with the keyword/hashtag. All plots should have titles and captions.
+
+```{r}
+#library(rtweet) 
+library(tidytext)
+library(ggpubr) 
+library(tidyverse) 
+library(knitr)
+library(lubridate)
+
+keyword_search = '#microsoft'
+
+#df <- search_tweets(q = keyword_search, 
+                        #n = 18000,
+                        #include_rts = FALSE,
+                        #`-filter` = "replies",
+                        #lang = "en") %>% 
+  #mutate(created_at = ymd_hms(format(created_at, tz = "US/Eastern")))
+
+#write_csv(df, 'twitter_data_ole.csv')
+
+```
+
+```{r}
+df <- read.csv("twitter_data_ole.csv")
+```
+
+
+```{r}
+df %>% 
+  unnest_tokens(output = hashtag, input = text, token = "tweets") %>%
+  filter(!hashtag %in% c("#microsoft"), str_detect(hashtag, "^#")) %>% 
+  count(hashtag, sort = TRUE) %>%
+  head(10) %>% 
+  ggplot(aes(x = n, y = reorder(hashtag, n)))+
+  geom_col()+
+  labs(x = 'Frequency', y = '')+
+    labs(x='Count', 
+       y = 'Hashtags', 
+       title = 'Count vs Hashtags', 
+       caption = 'Top 10 hashtags.')
+```
+
+```{r}
+library(RColorBrewer)
+
+pal <- brewer.pal(8,"Dark2")
+library(wordcloud) 
+
+df %>% 
+  unnest_tokens(output = hashtag, input = text, token = "tweets") %>%
+  filter(!hashtag %in% c("#microsoft"), str_detect(hashtag, "^#")) %>%
+  count(hashtag, sort = TRUE) %>%
+  mutate(hashtag = str_remove(hashtag, '#')) %>% 
+  filter(hashtag != 'mufc') %>% 
+  with(wordcloud(hashtag, n, random.order = FALSE, max.words = 50, colors = pal))
+```
+
+```{r}
+#top five favorites
+df %>% 
+  arrange(-favorite_count) %>%
+  head(5) %>% 
+  select(favorite_count, text, favorite_count)
+```
+
+```{r}
+#screen name
+df %>% 
+  count(screen_name, sort = TRUE) %>%
+  head(5) %>% 
+  ggplot(aes(x = n, y = reorder(screen_name, n)))+
+  geom_col()+
+    labs(x='Count', 
+       y = 'Screen name', 
+       title = 'Count vs Screen Name', 
+       caption = 'Top 5 Screen Name')
+```
+
+```{r}
+df %>% 
+  unnest_tokens(mentions, text, "tweets", to_lower = FALSE) %>%
+  filter(str_detect(mentions, "^@")) %>%  
+  count(mentions, sort = TRUE) %>%
+  head(10)
+
+df %>% 
+  count(source, sort = TRUE) %>%
+  head(5) %>% 
+  ggplot(aes(x = n, y = reorder(source, n)))+
+  geom_col()+
+    labs(x='Count', 
+       y = 'Source', 
+       title = 'Count vs Source', 
+       caption = 'Top 5 Sources')
+```
+
+```{r}
+df %>% 
+  filter(!is.na(country)) %>% 
+  count(country, sort = TRUE) %>%
+  head(5) %>% 
+  ggplot(aes(x = n, y = reorder(country, n)))+
+  geom_col()+
+    labs(x='Count', 
+       y = 'County', 
+       title = 'Count vs Country', 
+       caption = 'Top 5 Country')
+```
+
+```{r}
+df %>% 
+  filter(!is.na(location), !location=='') %>% 
+  count(location, sort = TRUE) %>%
+  head(5) %>% 
+  ggplot(aes(x = n, y = reorder(location, n)))+
+  geom_col()+
+    labs(x='Count', 
+       y = 'Location', 
+       title = 'Count vs Location', 
+       caption = 'Top 5 Location')
+```
+
+```{r}
+df %>% 
+  select(screen_name, favourites_count) %>% 
+  filter(!is.na(favourites_count)) %>% 
+  group_by(screen_name) %>% 
+  summarise(average_fav = mean(favourites_count)) %>% 
+  arrange(-average_fav) %>% 
+  head(5) %>% 
+  ggplot(aes(x=average_fav, y = reorder(screen_name, average_fav)))+
+  geom_col()+
+    labs(x='Count', 
+       y = 'User', 
+       title = 'Count vs User', 
+       caption = 'Top 5 Users')
+```
+
+```{r}
+df %>%
+    unnest_tokens(input = text, output = word) %>% 
+    anti_join(get_stopwords()) %>% 
+    count(word, sort = TRUE) %>%
+    inner_join(get_sentiments("nrc")) %>%
+    filter(!is.na(sentiment)) %>%
+    count(sentiment, sort = TRUE) %>% 
+    mutate(n = n/sum(n)) %>% 
+    ggplot(aes(y= reorder(sentiment, n), x = n))+geom_col()+
+    labs(y='Relative Frequency', x ='')+
+    labs(x='Count', 
+       y = 'Sentiment Analysis', 
+       title = 'Count vs Sentiment Analysis', 
+       caption = 'Top 10 Sentiment Analyses')
+```
+```{r}
+df %>%
+    unnest_tokens(input = text, output = word) %>% 
+    anti_join(get_stopwords()) %>% 
+    count(word, sort = TRUE) %>%
+    inner_join(get_sentiments("bing")) %>%
+    filter(!is.na(sentiment)) %>%
+    count(sentiment, sort = TRUE) %>% 
+    mutate(n = n/sum(n)) %>% 
+    ggplot(aes(y= reorder(sentiment, n), x = n))+geom_col()+
+    labs(x='Count', 
+       y = 'Sentiment Analysis', 
+       title = 'Count vs Sentiment Analysis', 
+       caption = 'The general Sentiment Analysis')
+```
+#### Choose a location then pick a trending keyword/hashtag in the location. Download the data associated with the keyword/hashtag. Plot at least 10 plots to visualize the data associated with the keyword/hashtag. All plots should have titles and captions.
+```{r}
+#trends_available()
+```
+```{r}
+#df <- get_trends('Quebec')
+```
+
+```{r}
+## lookup users by screen_name or user_id
+users <- c("KimKardashian", "justinbieber", "taylorswift13",
+           "espn", "JoelEmbiid", "cstonehoops", "KUHoops",
+           "upshotnyt", "fivethirtyeight", "hadleywickham",
+           "cnn", "foxnews", "msnbc", "maddow", "seanhannity",
+           "potus", "epa", "hillaryclinton", "realdonaldtrump",
+           "natesilver538", "ezraklein", "annecoulter")
+
+#famous_tweeters <- lookup_users(users)
+
+## preview users data
+#famous_tweeters
+```
+
+```{r}
+#tweets_data(famous_tweeters)
+```
+```{r}
+keyword_search = 'Lebron'
+
+#df <- search_tweets(q = keyword_search, 
+                       # n = 18000,
+                       # include_rts = FALSE,
+                       # `-filter` = "replies",
+                       # lang = "en") %>% 
+ # mutate(created_at = ymd_hms(format(created_at, tz = "US/Eastern")))
+
+#write_csv(df, 'twitter_data_lebron.csv')
+```
+
+```{r}
+#we noticed the that lebron is one of the top people based upon the above code 
+df <- read_csv("twitter_data_lebron.csv")
+
+df %>% 
+  unnest_tokens(output = hashtag, input = text, token = "tweets") %>%
+  filter(!hashtag %in% c("#lebron","#lebronjames"), str_detect(hashtag, "^#")) %>%
+  count(hashtag, sort = TRUE) %>%
+  head(10) %>% 
+  ggplot(aes(x = n, y = reorder(hashtag, n)))+
+  geom_col()+
+    labs(x='Count', 
+       y = 'Hashtags', 
+       title = 'Count vs Hashtags', 
+       caption = 'Top 10 Hashtags')
+```
+```{r}
+library(RColorBrewer)
+
+pal <- brewer.pal(8,"Dark2")
+library(wordcloud) 
+
+df %>% 
+  unnest_tokens(output = hashtag, input = text, token = "tweets") %>%
+  filter(!hashtag %in% c("#lebron","#lebronjames"), str_detect(hashtag, "^#")) %>%
+  count(hashtag, sort = TRUE) %>%
+  mutate(hashtag = str_remove(hashtag, '#')) %>% 
+  filter(hashtag != 'mufc') %>% 
+  with(wordcloud(hashtag, n, random.order = FALSE, max.words = 50, colors = pal))
+```
+
+```{r}
+df %>% 
+  count(screen_name, sort = TRUE) %>%
+  head(5) %>% 
+  ggplot(aes(x = n, y = reorder(screen_name, n)))+
+  geom_col()+
+    labs(x='Count', 
+       y = 'Screen name', 
+       title = 'Count vs Screen Name', 
+       caption = 'The top five screen name')
+```
+
+```{r}
+df %>% 
+  count(source, sort = TRUE) %>%
+  head(5) %>% 
+  ggplot(aes(x = n, y = reorder(source, n)))+
+  geom_col()+
+    labs(x='Count', 
+       y = 'Sources', 
+       title = 'Count vs Sources', 
+       caption = 'The general Sentiment Analysis')
+```
+
+```{r}
+df %>% 
+  filter(!is.na(country)) %>% 
+  count(country, sort = TRUE) %>%
+  head(5) %>% 
+  ggplot(aes(x = n, y = reorder(country, n)))+
+  geom_col()+
+    labs(x='Count', 
+       y = 'Sources', 
+       title = 'Count vs Sources', 
+       caption = 'The general Sentiment Analysis')
+```
+
+```{r}
+df %>% 
+  filter(!is.na(location), !location=='') %>% 
+  count(location, sort = TRUE) %>%
+  head(5) %>% 
+  ggplot(aes(x = n, y = reorder(location, n)))+
+  geom_col()+
+    labs(x='Count', 
+       y = 'County', 
+       title = 'Count vs County', 
+       caption = 'The count for each of the top counties')
+```
+
+```{r}
+df %>% 
+  select(screen_name, favourites_count) %>% 
+  filter(!is.na(favourites_count)) %>% 
+  group_by(screen_name) %>% 
+  summarise(average_fav = mean(favourites_count)) %>% 
+  arrange(-average_fav) %>% 
+  head(5) %>% 
+  ggplot(aes(x=average_fav, y = reorder(screen_name, average_fav)))+
+  geom_col()+
+    labs(x='Count', 
+       y = 'Accounts', 
+       title = 'Count vs Accounts', 
+       caption = 'Top Accounts with the highest favorites')
+```
+
+```{r}
+df %>% 
+  unnest_tokens(output = word, input = text, token = "words") %>%
+  anti_join(get_stopwords()) %>% 
+  filter(!word %in% c('https', 't.co')) %>% 
+  count(word, sort = TRUE) %>%
+  head(5) %>% 
+  ggplot(aes(x = n, y = reorder(word, n)))+
+  geom_col()+
+    labs(x='Count', 
+       y = 'Tweet', 
+       title = 'Count vs Tweet', 
+       caption = 'Highest text in a specific tweet')
+```
+
+```{r}
+df %>%
+    unnest_tokens(input = text, output = word) %>% 
+    anti_join(get_stopwords()) %>% 
+    count(word, sort = TRUE) %>%
+    inner_join(get_sentiments("nrc")) %>%
+    filter(!is.na(sentiment)) %>%
+    count(sentiment, sort = TRUE) %>% 
+    mutate(n = n/sum(n)) %>% 
+    ggplot(aes(y= reorder(sentiment, n), x = n))+geom_col()+
+    labs(x='Count', 
+       y = 'Sentiment', 
+       title = 'Count vs Sentiment', 
+       caption = 'Sentiment analysis for tweets')
+```
+
+```{r}
+df %>%
+    unnest_tokens(input = text, output = word) %>% 
+    anti_join(get_stopwords()) %>% 
+    count(word, sort = TRUE) %>%
+    inner_join(get_sentiments("bing")) %>%
+    filter(!is.na(sentiment)) %>%
+    count(sentiment, sort = TRUE) %>% 
+    mutate(n = n/sum(n)) %>% 
+    ggplot(aes(y= reorder(sentiment, n), x = n))+geom_col()+
+    labs(x='Count', 
+       y = 'Sentiment Analysis', 
+       title = 'Count vs Sentiment Analysis', 
+       caption = 'Average sentiment analysis for all tweets')
+```
+
