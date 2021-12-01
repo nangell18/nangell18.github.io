@@ -1,0 +1,221 @@
+---
+title: "Assignment 15"
+author: "Nathan Angell"
+date: "11/29/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidytext)
+library(ggpubr) 
+library(tidyverse) 
+library(knitr)
+library(lubridate)
+```
+
+
+### 1. Write a function to calculate the age of a person. Give an example to test your function.
+- Input: a number, x, (year born)
+- Output: Print out “You are r age”. Where r is the age of the person, i.e. 2020 - x.
+```{r}
+age <- function(x)
+{
+  r = 2021-x
+  print(paste0('You are ', r, ' years old.'))
+}
+
+age(1999)
+```
+
+
+### 2. Write the following function. Give an example to test your function.
+- Input: a number
+- Output: print out: “Your input is an even number!” if the number is not even, or “You input an odd number!” otherwise.
+```{r}
+num <- function(x)
+{
+  if((x %% 2) == 0) 
+  {
+  print(paste(x,"is Even"))
+  } else 
+  {
+  print(paste(x,"is Odd"))
+  }
+}
+
+num(3)
+
+num(4)
+```
+
+### 3. Write the following function. Give an example to test your function.
+- Input: a numeric vector
+- Output:
+  - if the input vector has missing values: return the input vector with missing values replaced by mean
+  - if the input vector has no missing value: return the same input vector
+```{r}
+mean_impute <- function(x)
+{
+  if(sum(is.na(x))>0)
+  {
+    # Find the mean of x
+    mean_of_x <- mean(x, na.rm = TRUE)
+    # Replace the missing with mean
+    library(tidyr)
+    x <- replace_na(x, mean_of_x) 
+  }
+return(x)    
+}
+
+x <- c(1,2,5,3,NaN,6,7,NaN)
+
+mean_impute(x)
+```
+  
+### 4. Write the following function. Give an example to test your function.
+- Input: a vector x
+- Output: The vector x where the missing values replaced by the mean (if x is numeric) or the mode (if x is non-numeric). If x does not have missing value, return the same vector x.
+
+```{r}
+impute <- function(x)
+{
+  if(is.numeric(x))
+  {
+    # Find the mean of x
+    mean_of_x <- mean(x, na.rm = TRUE)
+    # Replace the missing with mean
+    x <- replace_na(x, mean_of_x) 
+  }
+  
+  else {
+    library(tidyr)
+     # Find the mean of x
+     mode_of_x <- names(sort(-table(x)))[1]
+    # Replace the missing with mean
+    x <- replace_na(x, mode_of_x) 
+    
+  }
+return(x)    
+}
+
+x <- c(1,NA,3,NA,5,8)
+impute(x)
+
+x <- c('a','b','a','a','z',NA,'d', NA)
+impute(x)
+```
+
+### 5. Write the following function. Give examples to test your function.
+- Input: A data frame of two variables x and y
+- Output:
+  - A boxplot of x by y if x is numeric and y is non-numeric
+  - A boxplot of y by x if y is numeric and x is non-numeric
+  - print out ‘This function cannot visualize your data’ otherwise
+  
+```{r}
+viz <- function(d)
+{
+  if(is.numeric(d[[1]])& is.character(d[[2]]))
+  {
+    d %>% ggplot(aes(x = d[[1]], y = d[[2]]))+
+      geom_point()+
+      labs(x = names(d)[1], y = names(d)[2])
+  }
+  else if ((is.numeric(d[[2]])& is.character(d[[1]])))
+  {
+    d %>% ggplot(aes(x = d[[2]], fill = d[[1]]))+
+      geom_bar(position = 'dodge')+
+      labs(x = names(d)[2], fill = names(d)[1])
+  }
+  else 
+  {
+    print('This function cannot visualize your data.')
+  }
+}
+
+df <- read_csv("titanic.csv")
+
+d <- df %>% select(Age, Embarked)
+viz(d)
+
+d <- df %>% select(Embarked, Age)
+viz(d)
+```
+  
+### 6. Combine the function in Question 5 and the function in this example (Link) to have a function that can plot all possible cases (2 categorical, 2 numeric, 1 numeric and 1 categorical).
+
+```{r}
+viz <- function(d)
+{
+  if(is.numeric(d[[1]])& is.character(d[[2]]))
+  {
+    d %>% ggplot(aes(x = d[[1]], y = d[[2]]))+
+      geom_point()+
+      labs(x = names(d)[1], y = names(d)[2])
+  }
+  else if ((is.numeric(d[[2]])& is.character(d[[1]])))
+  {
+    d %>% ggplot(aes(x = d[[2]], fill = d[[1]]))+
+      geom_bar(position = 'dodge')+
+      labs(x = names(d)[2], fill = names(d)[1])
+  }
+  
+  else if(is.numeric(d[[1]])&is.numeric(d[[2]]))
+  {
+    d %>% ggplot(aes(x = d[[1]], y = d[[2]]))+
+      geom_point()+
+      labs(x = names(d)[1], y = names(d)[2])
+  }
+  else if (!(is.numeric(d[[1]])|is.numeric(d[[2]])))
+  {
+    d %>% ggplot(aes(x = d[[1]], fill = d[[2]]))+
+      geom_bar(position = 'dodge')+
+      labs(x = names(d)[1], fill = names(d)[2])
+  }
+  
+  else 
+  {
+    print('This function cannot visualize your data.')
+  }
+}
+
+d <- df %>% select(Age, Fare)
+viz(d)
+
+df$Pclass <- factor(df$Pclass)
+d <- df %>% select(Sex, Pclass)
+viz(d)
+```
+
+
+### 9. Write the following function. Give examples to test your function.
+- Input:
+  - a data frame that has a text column
+  - the name of the text column in the data
+  
+- Output: the word cloud plot of the text column
+```{r}
+word_frequency <- function(text_df, text_col) {
+  library(wordcloud)
+  text_df %>% 
+  unnest_tokens(input = text_col, output = word) %>% 
+  anti_join(get_stopwords()) %>% 
+  count(word, sort = TRUE) %>% 
+  head(5) %>% 
+  ggplot(aes(x = n, y = reorder(word, n))) +
+  geom_col() + theme(axis.text.y = element_text(size = 40))+ 
+  labs(y = '', x = 'Frequency')
+}
+
+df <- read_csv('twitter_data_lebron.csv')
+word_frequency(text_df = df, text_col = 'text')
+```
+
+
+
+
+
