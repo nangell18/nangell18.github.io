@@ -16,7 +16,6 @@
 - [Final slides for Midterm](slides.html)
 - [Click here to my Assignment 14](assignment14.html)
 - [Click here to my Assignment 15](assignment15.html)
-- [Click here to my Final Exam Project](question12.R)
 
 - [Final Project - Question 2](https://nangell18.shinyapps.io/question2/)
 - [Final Project - Question 3](https://nangell18.shinyapps.io/question3/)
